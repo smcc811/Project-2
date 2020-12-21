@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
+const Renters = require("../models/renters");
 
 const db = require("../models");
 
-// GET route for renter, will return all bookings for the partical renter based on renterId
+// GET route for renter, will return all bookings for the specific renter based on renterId *EMAIL*
 // Renter table will have multiple records for the same renterID because of multiple bookings  
 router.get("/renters/:email", (req, res) => {
   db.Renters.findAll({
@@ -41,26 +42,19 @@ router.get("/renters/:rentersId", (req, res) => {
   //copy
 
 //GET route retrieve all bookings for a specific location ID
-router.get("/renters/bookingDetails/:locationId", (req, res) => {
+router.get("/renters/bookingDetails/:propertyTypeId", (req, res) => {
     db.Renters.findAll({
       where: {
-          locationId: req.params.locationId
-      }
+          propertyTypeId: req.params.propertyTypeId
+      },
+      
+    }).then((booking) => {
+      res.render("bookingdetails", { bookingDetails: bookingDetailsObj })
     })
-      .then((bookingDetails) => {
-        console.log(renters);
-        let bookingDetailsObj = {
-            //ensure that "startDD" is the correct variable name to use for column
-            "bookingDate": bookingDetails.startDD, 
-            "timeReserve": bookingDetails.timeReserve,
-        }
-        res.render("bookingdetails", { bookingDetails: bookingDetailsObj });
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  });
-
+    .catch((err) => {
+      console.log(err);
+    });
+});
 
 
 
@@ -88,25 +82,28 @@ router.get("/players/:id/edit", (req, res) => {
 //POST route for renter to create new booking on Renters AND Bookings table
 //
 router.post("/api/renters", (req, res) => {
-  db.Renters.create(req.body)
+  console.log(req.body)
+  Renters.create(req.body)
     .then((newRenter) => {
-        let bookingDetails = {
-            "bookingId": req.body.bookingId, 
-            "rentersId": req.body.rentersId,
-            "locationTitle": req.body.locationTitle,
-            "hostId": req.body.hostId
-        }
-        db.bookings.create(bookingDetails).then ((booking ) => {
-            res.json(newRenter);
-        })
-      
+      console.log(newRenter);
+        // let bookingDetails = {
+        //     "bookingId": req.body.bookingId, 
+        //     "rentersId": req.body.rentersId,
+        //     "locationTitle": req.body.locationTitle,
+        //     "hostId": req.body.hostId
+        // }
+        // db.bookings.create(bookingDetails).then ((booking ) => {
+        //     res.json(newRenter);
+        // })
+        res.json(newRenter);
+        res.render("confirm", {name: "James"})
     })
     .catch((err) => {
       console.log(err);
     });
 });
  
-// PUT to allow them to update date or time
+// PUT to allow them to update date or time or number of guests
 router.put("/api/renters/:bookingID", (req, res) => {
   db.Renters.update(req.body, {
     where: {
